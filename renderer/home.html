@@ -26,6 +26,7 @@
 
 
 
+
     
     <div id="blockDialer">
       <h1 id="me">Me</h1>
@@ -52,8 +53,20 @@
   
       </div>
 
+      <div id="blockAdd">
+        <h2>Add a Phonebook Entry</h2>
+        <label>Name</label><input id="addName"><br />
+        <label>Number</label><input id="addNumber"><br />
+        <button id="doAdd">Add</Button>
+        <button class="btn-warn" id="cancelAdd">Cancel</button>
+    
+      </div>
+
       <div id="blockPhonebook" style="display: none;">
+        <div class="phonebook-header">
         <h2>Phonebook</h2>
+        <button id="add-contact" class="add-button"><i class="fas fa-plus"></i></button>
+        </div>
 
         <ul id="phonebook-list">
           <li class="phonebook-entry">

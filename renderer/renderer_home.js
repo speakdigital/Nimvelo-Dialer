@@ -98,6 +98,64 @@ $(document).ready(() => {
         ipcRenderer.send("show-registerext");
     });
 
+    $(document).on("click", ".delete-button", function () {
+        let $entry = $(this).closest(".phonebook-entry"); 
+        let contactId = $entry.data("id");
+        let contactName = $entry.find("strong").text(); // Get contact name
+    
+        // Show confirmation dialog
+        if (confirm(`Are you sure you want to delete ${contactName}?`)) {
+            ipcRenderer.invoke("delete-contact", contactId);
+            $entry.fadeOut(300, function () { 
+                $(this).remove(); 
+            });
+        }
+    });
+
+    $("#add-contact").on("click", function(event) {
+        event.preventDefault();
+        $("#blockAdd").slideDown(300);
+    })
+
+
+    $("#cancelAdd").on("click", function(event) {
+        event.preventDefault();
+        $("#blockAdd").slideUp(300);
+    })
+
+    // Allow only letters, numbers, and spaces in Name field
+    $("#addName").on("input", function () {
+        $(this).val($(this).val().replace(/[^a-zA-Z0-9 ]/g, "")); 
+    });
+
+    // Allow only digits in Number field
+    $("#addNumber").on("input", function () {
+        $(this).val($(this).val().replace(/\D/g, "")); 
+    });
+
+    $(document).on("click", "#doAdd", function () {
+        let name = $("#addName").val().trim();
+        let number = $("#addNumber").val().trim();
+    
+        // Show confirmation dialog
+        if (confirm(`Are you sure you want to add ${name} with number ${number}?`)) {
+            ipcRenderer.invoke('phonebook-add',name,number)
+            .then((response) => {
+                if (response.success)
+                {   getPhonebook();
+                    $("#addName").val("");
+                    $("#addNumber").val("");
+                    $("#blockAdd").slideUp(300);
+                } else {
+                    alert(response.message);
+                }
+            })
+            .catch(error => {
+                console.error("Failed to add phonebook entry", error);
+            });
+            
+        }
+    });
 
 });
 
@@ -143,12 +201,14 @@ function getPhonebook() {
 
         phonebook.forEach(entry=>{
             let listItem = $(
-                `<li class="phonebook-entry">
+                `<li class="phonebook-entry" data-id="${entry.id}">
                     <div class="contact-info">
                         <strong>${entry.name}</strong>
                         <span>${entry.phoneNumber}</span>
-                    </div>
+                    </div><div class="button-group">
+                    <button class="delete-button btn-warn"><i class="fas fa-trash"></i></button>
                     <button class="call-button"><i class="fas fa-phone"></i></button>
+                    </div>
                 </li>`
             );
             $("#phonebook-list").append(listItem);
@@ -204,6 +264,7 @@ function dial() {
 ipcRenderer.on("focus-dialer", () => {
     const dialerInput = document.getElementById("dialerNumber");
     if (dialerInput) {
+        dialerInput.value = "";
         dialerInput.focus();
     }
 });

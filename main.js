@@ -518,3 +518,77 @@ ipcMain.handle('dial', async (event, call, selectedCallerId, withhold) => {
         return { success: false, message: error.message };
     }
 });
+
+ipcMain.handle('delete-contact', async (event, contactid) => {
+    console.log(`Deleting ${contactid} from address book.`);
+
+
+    try {
+        const baseURL = "https://pbx.sipcentric.com/api/v1/";
+
+        const username = store.get('username', '');
+        const password = store.get('password', '');
+        const customer = store.get('customer', '');
+
+
+        const requestURL = new URL(`customers/${customer}/phonebook/${contactid}`, baseURL).toString();
+
+
+        const response = await fetch(requestURL, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64')
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.statusText}`);
+        }
+
+        return { success: true, message: "Phonebook Entry deleted" };
+    } catch (error) {
+        console.error("Error deleting:", error);
+        return { success: false, message: error.message };
+    }
+});
+
+
+ipcMain.handle('phonebook-add', async (event, name, number) => {
+    console.log(`Adding ${name} with number ${number} to address book.`);
+
+
+    try {
+        const baseURL = "https://pbx.sipcentric.com/api/v1/";
+
+        const username = store.get('username', '');
+        const password = store.get('password', '');
+        const customer = store.get('customer', '');
+
+
+        const requestURL = new URL(`customers/${customer}/phonebook`, baseURL).toString();
+
+        var requestBody = {
+            type: "phonebookentry",
+            name: name,
+            phoneNumber: number
+          }
+
+        const response = await fetch(requestURL, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64') ,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.statusText}`);
+        }
+
+        return { success: true, message: "Phonebook Entry added" };
+    } catch (error) {
+        console.error("Error deleting:", error);
+        return { success: false, message: error.message };
+    }
+});
