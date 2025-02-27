@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="../node_modules/jquery-ui/dist/themes/base/jquery-ui.css">
+
+
+      <!-- jQuery (required for jQuery UI) -->
+      <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+      <script>window.$ = window.jQuery = require('jquery');
+      console.log("jQuery version:", window.jQuery ? jQuery.fn.jquery : "Not loaded");</script>
+    
+
+      <!-- jQuery UI -->
+      <script src="../node_modules/jquery-ui/dist/jquery-ui.min.js"></script>
+
+      <!-- Your custom script -->
+      <script defer src="renderer_home.js"></script>
+    
+</head>
+<body>
+
+
+
+    
+    <div id="blockDialer">
+      <h1 id="me">Me</h1>
+
+      <form>
+            <legend class="no-margin">Number Dialler</legend>
+            <div id="dialerNumberGroup" class="control-group">
+              <input type="text" id="dialerNumber" class="error" placeholder="Enter a number / search contacts">
+            </div>
+              <label class="checkbox"><input id="dialerWithhold" type="checkbox"> <small>Withhold Caller ID</small></label>
+            <small id="dialerInfo" class="text-info"></small>
+  
+            <br />
+            <br />
+            <small>Caller Id:</small>
+            <select id="callerIdPicker">
+            </select>
+  
+            <div id="numberDialerButtons">
+              <button type="submit" id="dial" class="btn btn-info">Dial <i class="icon-chevron-right icon-white"></i></button>
+              <!--<button id="recent" class="btn" type="button" alt="Recent Calls"><i class="icon-align-justify"></i></button>-->
+            </div>
+        </form>
+  
+      </div>
+
+      <div id="blockPhonebook" style="display: none;">
+        <h2>Phonebook</h2>
+
+        <ul id="phonebook-list">
+          <li class="phonebook-entry">
+              <div class="contact-info">
+                  <strong>John Doe</strong>
+                  <span>+1234567890</span>
+              </div>
+              <button class="call-button"><i class="fas fa-phone"></i></button>
+          </li>
+          <li class="phonebook-entry">
+              <div class="contact-info">
+                  <strong>Jane Smith</strong>
+                  <span>+9876543210</span>
+              </div>
+              <button class="call-button"><i class="fas fa-phone"></i></button>
+          </li>
+       </ul>
+      </div>
+
+    <p id="status"></p>
+
+
+    <footer class="fixed-footer">
+      <span class="icons">
+      <a id="showDialpad" href="#" title="Show Dialpad"><i class="fas fa-phone"></i></a>
+      <a id="showPhonebook" href="#" title="Show Phonebook"><i class="fas fa-book"></i></a>
+      <a id="showSettings" href="#" title="Settings"><i class="fas fa-gear"></i></a>
+      <a id="exit" href="#" title="Exit Application"><i class="fas fa-door-open"></i></a>
+    </span>
+
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="renderer.js"></script>
+</head>
+<body>
+
+
+    <h1>Setup Your Extension</h1>
+
+    <form>
+
+          <p>Select your customer:</p>
+
+          <select id="customers">
+            <option value="me">Loading Custoners...</option>
+          </select>
+
+          <p>Select your extension:</p>
+
+          <select id="extensions">
+            <option value="notset">Loading Extensions</option>
+          </select>
+
+          <br /><br /><button type="submit" id="saveSettings" class="btn btn-small btn-info">Save <i class="icon-ok icon-white"></i></button>
+      </form>
+      <br />
+
+      <label for="toggleAutoLaunch">
+        <input type="checkbox" id="toggleAutoLaunch"> Enable Auto-Launch on Startup
+    </label>
+    
+    <p id="status"></p>
+
+</body>
+</html>

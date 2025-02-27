@@ -1,0 +1,85 @@
+{
+  "name": "nimvelo-dialer",
+  "version": "1.0.0",
+  "description": "Nimvelo Dialer and Phonebook",
+  "main": "main.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "package": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.2",
+    "auto-launch": "^5.0.6",
+    "axios": "^1.7.9",
+    "electron-store": "^10.0.1",
+    "electron-updater": "^6.3.9",
+    "jquery": "^3.7.1",
+    "jquery-ui": "^1.14.1"
+  },
+  "build": {
+    "appId": "com.speakdigital.nimvelodialer",
+    "productName": "NimveloDialer",
+    "copyright": "Copyright © 2025",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "renderer/",
+      "node_modules/",
+      "assets/",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "assets/",
+        "to": "assets/"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "NimveloDialer-Setup-${version}.exe"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "runAfterFinish": true
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "assets/icon.icns",
+      "artifactName": "NimveloDialer-${version}.dmg"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "assets/",
+      "artifactName": "NimveloDialer-${version}.${ext}"
+    }
+  },
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "speakdigital",
+      "repo": "Nimvelo-Dialer"
+    }
+  ]
+}

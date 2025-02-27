@@ -1,0 +1,126 @@
+body {
+    background-color: #f9f9f9;
+    font-family: ui-sans-serif,-apple-system,system-ui,Segoe UI,Helvetica,Apple Color Emoji,Arial,sans-serif,Segoe UI Emoji,Segoe UI Symbol;
+    padding: 0px 10px;  padding-bottom: 50px;
+}
+h1 { color: #314755; border-bottom:  1px solid #314755;}
+h2 { color: #314755; border-bottom:  1px solid #314755;}
+button {
+    background-color: #26a0da;
+    color: white;
+    font-size: 16px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+button:hover {
+    background-color:  #314755;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    background-color: grey !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"] { margin-bottom: 12px; font-size: 14px; height:20px; width: calc(100% - 10px);   }
+
+select {
+    height: 32px; /* Adjusted height for dropdown appearance */
+    font-size: 14px; /* Ensures font-size applies to dropdown itself */
+}
+
+
+.fixed-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #314755; /* Your theme color */
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.fixed-footer a {
+    color: #fff; text-decoration:  none;
+}
+.fixed-footer a:hover {
+    color: #fff; text-decoration:  underline;
+}
+
+.fixed-footer span.icons {
+    font-size: 18px;
+}
+
+.fixed-footer span.icons a {
+    margin: 0px 10px;
+}
+
+
+#phonebook-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    margin-left: 20px;
+    margin-right: 0;
+    padding-left: 0;
+}
+
+.phonebook-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.phonebook-entry:hover {
+    background-color: #ededed;
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.contact-info strong {
+    font-size: 16px;
+    color: #314755;
+}
+
+.contact-info span {
+    font-size: 14px;
+    color: #26a0da;
+}
+
+.call-button {
+    font-size: 16px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
