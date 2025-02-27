@@ -17,7 +17,12 @@ button {
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
     margin-top: 20px;
 }
-
+button.btn-warn {
+    background-color: maroon;
+}
+button.btn-warn:hover {
+    background-color: red;
+}
 button:hover {
     background-color:  #314755;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
@@ -67,13 +72,20 @@ select {
 }
 
 .fixed-footer span.icons {
-    font-size: 18px;
+    font-size: 18px; display: flex; 
 }
 
 .fixed-footer span.icons a {
     margin: 0px 10px;
 }
 
+#version {
+    position: absolute;
+    right: 45px;  /* Adjust as needed */
+    bottom: 14px; /* Keeps it aligned with the footer */
+    text-align: right;
+    font-size: 12px;
+}
 
 #phonebook-list {
     list-style: none;

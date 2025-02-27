@@ -64,11 +64,12 @@ $(document).ready(() => {
             });
 
         });
+
     }
     if (window.location.pathname.includes('registerext.html')) {
         getCustomers();
         $('#customers').change(getExtensions());
-        $('#saveSettings').click((event) => {
+        $('#saveSettings').on("click",(event) => {
             event.preventDefault(); 
             const selectedCustomer = $('#customers').val();
             const selectedExtension = $('#extensions').val();        
@@ -84,10 +85,39 @@ $(document).ready(() => {
             console.log("Settings saved");
             ipcRenderer.send('show-home'); // Switch to registerext.html 
         });
+        $('#resetApp').on("click",(event) => {
+            event.preventDefault(); 
+            ipcRenderer.invoke('reset-app');
+        });
+        setupAutoLaunchCheckbox();
+
     }
 
-
 });
+
+async function setupAutoLaunchCheckbox(){
+    const checkbox = document.getElementById("toggleAutoLaunch");
+    const statusElement = document.getElementById("status");
+
+    try {
+        // Get current auto-launch status from main process
+        const isEnabled = await ipcRenderer.invoke("get-auto-launch-status");
+        checkbox.checked = isEnabled;
+
+        // Listen for checkbox changes
+        checkbox.addEventListener("change", async function () {
+            const enable = this.checked;
+            await ipcRenderer.invoke("set-auto-launch", enable);
+
+            // Update the status message
+            statusElement.textContent = `Auto-launch is now ${enable ? "enabled" : "disabled"}`;
+            statusElement.style.color = enable ? "green" : "red";
+        });
+    } catch (error) {
+        console.error("Error getting auto-launch status:", error);
+    }
+
+}
 
 // Lets get all customers the user can set
 // limited to first 200 results
@@ -136,25 +166,3 @@ function getCustomers() {
   }
 
 
-  document.addEventListener("DOMContentLoaded", async function () {
-    const checkbox = document.getElementById("toggleAutoLaunch");
-    const statusElement = document.getElementById("status");
-
-    try {
-        // Get current auto-launch status from main process
-        const isEnabled = await ipcRenderer.invoke("get-auto-launch-status");
-        checkbox.checked = isEnabled;
-
-        // Listen for checkbox changes
-        checkbox.addEventListener("change", async function () {
-            const enable = this.checked;
-            await ipcRenderer.invoke("set-auto-launch", enable);
-
-            // Update the status message
-            statusElement.textContent = `Auto-launch is now ${enable ? "enabled" : "disabled"}`;
-            statusElement.style.color = enable ? "green" : "red";
-        });
-    } catch (error) {
-        console.error("Error getting auto-launch status:", error);
-    }
-});

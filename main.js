@@ -1,10 +1,10 @@
-const { app, BrowserWindow, ipcMain,Tray, Menu, globalShortcut,autoUpdater, dialog   } = require('electron');
+const { app, BrowserWindow, ipcMain,Tray, Menu, globalShortcut, dialog, autoUpdater  } = require('electron');
 const axios = require('axios'); // Import axios for API requests
 const path = require("path");
 const AutoLaunch = require("auto-launch");
 
 const baseURL = "https://pbx.sipcentric.com/api/v1/"
-const debug = false;
+const debug = !app.isPackaged;
 
 let store;
 let Store;
@@ -12,38 +12,45 @@ let win;
 let tray;
 
 
-
-const { app, autoUpdater, dialog } = require("electron");
-const log = require("electron-log");
-
 const server = "https://github.com/speakdigital/Nimvelo-Dialer/releases/latest";
 autoUpdater.setFeedURL({ url: server });
 
-autoUpdater.on("update-available", () => {
-  dialog.showMessageBox({
-    type: "info",
-    title: "Update Available",
-    message: "A new version is available. Downloading now...",
-  });
-});
 
-autoUpdater.on("update-downloaded", () => {
-  dialog
-    .showMessageBox({
-      type: "question",
-      buttons: ["Restart", "Later"],
-      defaultId: 0,
-      title: "Update Ready",
-      message: "Update downloaded. Restart the app to install?",
-    })
-    .then((result) => {
-      if (result.response === 0) autoUpdater.quitAndInstall();
+app.whenReady().then(() => {
+  autoUpdater.autoDownload = true; // Automatically download updates
+
+  autoUpdater.on("update-available", () => {
+    dialog.showMessageBox({
+      type: "info",
+      title: "Update Available",
+      message: "A new update is available. Downloading now...",
     });
+  });
+
+  autoUpdater.on("update-downloaded", () => {
+    dialog
+      .showMessageBox({
+        type: "question",
+        buttons: ["Restart", "Later"],
+        defaultId: 0,
+        title: "Update Ready",
+        message: "Update downloaded. Restart the app to install?",
+      })
+      .then((result) => {
+        if (result.response === 0) {
+          autoUpdater.quitAndInstall();
+        }
+      });
+  });
+
+  autoUpdater.on("error", (err) => {
+    console.error("Update error:", err);
+  });
+
+  // Now trigger update check
+  autoUpdater.checkForUpdates();
 });
 
-app.on("ready", () => {
-  autoUpdater.checkForUpdatesAndNotify();
-});
 
 
 const myAppLauncher = new AutoLaunch({
@@ -177,6 +184,10 @@ ipcMain.on('show-home', () => {
     win.loadFile(path.join(__dirname, './renderer/home.html')); // Switch to extension setup page
 });
 
+ipcMain.handle("get-app-version", () => {
+    return app.getVersion();
+  });
+
 ipcMain.handle('get-store-data', (event, key) => {
     return store.get(key, '');
 });
@@ -189,6 +200,14 @@ ipcMain.on("close-app", () => {
     console.log("Closing application");
     app.isQuiting = true;
     app.exit();
+});
+
+ipcMain.handle("reset-app", () => {
+    // Clear all data
+    store.clear();
+    console.log("Electron Store has been cleared!");
+    win.loadFile(path.join(__dirname, `./renderer/welcome.html`));
+    
 });
 
 async function authenticateUser(username, password) {

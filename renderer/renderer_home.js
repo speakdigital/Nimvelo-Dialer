@@ -4,6 +4,11 @@ let phonebookEntries = [];
 
 
 $(document).ready(() => {
+
+    ipcRenderer.invoke('get-app-version').then( (version) => {
+        $("#version").text(version);
+});
+
     ipcRenderer.invoke('get-me').then( (me) => {
             $("#me").text(me.name);
     });
