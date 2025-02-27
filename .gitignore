@@ -1,0 +1,16 @@
+# Ignore dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Ignore build output
+dist/
+out/
+build/
+
+# Ignore environment files
+.env
+.DS_Store
+
+# Ignore Electron auto-generated files
+electron-builder.yml
