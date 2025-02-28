@@ -1,6 +1,6 @@
 {
   "name": "nimvelo-dialer",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Nimvelo Dialer and Phonebook",
   "main": "main.js",
   "keywords": [],
@@ -34,7 +34,8 @@
       "output": "dist"
     },
     "files": [
-      "main.js", "streamHandler.js",
+      "main.js",
+      "streamHandler.js",
       "renderer/",
       "node_modules/",
       "assets/",
