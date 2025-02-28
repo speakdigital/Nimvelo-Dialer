@@ -87,6 +87,7 @@ select {
     bottom: 14px; /* Keeps it aligned with the footer */
     text-align: right;
     font-size: 12px;
+    cursor: pointer;
 }
 
 #blockAdd { margin-bottom: 20px; display: none; }

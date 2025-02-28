@@ -1,5 +1,5 @@
 const $ = require('jquery');
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, shell } = require('electron');
 let phonebookEntries = [];
 
 
@@ -7,7 +7,10 @@ $(document).ready(() => {
 
     ipcRenderer.invoke('get-app-version').then( (version) => {
         $("#version").text(version);
-});
+        $("#version").on("click",() => {
+            shell.openExternal("https://github.com/speakdigital/Nimvelo-Dialer");
+        });
+    });
 
     ipcRenderer.invoke('get-me').then( (me) => {
             $("#me").text(me.name);
@@ -24,7 +27,7 @@ $(document).ready(() => {
         $("#dialerNumber").on("keypress", function (event) {
             if (event.which === 13) { // 13 is the keycode for Enter
                 event.preventDefault(); // Prevent form submission
-                $("#dial").click(); // Simulate button click
+                $("#dial").trigger("click"); // Simulate button click
             }
         });
     });
@@ -230,8 +233,6 @@ function getPhonebook() {
             value: entry.phoneNumber
         }));
 
-        updateAutocomplete();
-
         phonebook.forEach(entry=>{
             let listItem = $(
                 `<li class="phonebook-entry" data-id="${entry.id}">
@@ -245,7 +246,18 @@ function getPhonebook() {
                 </li>`
             );
             $("#phonebook-list").append(listItem);
-        })
+        });
+
+        //add the extensions to the auto complete list but dont show in phonebook.
+        ipcRenderer.invoke('get-extensions').then((extensions) => {
+
+            const newEntries = extensions.map(entry => ({
+                label: `${entry.shortNumber} (Internal) ${entry.name}`,
+                value: entry.shortNumber
+            }));
+            phonebookEntries.push(...newEntries);
+        });
+        updateAutocomplete();
 
     });
 
@@ -253,13 +265,28 @@ function getPhonebook() {
 
 function updateAutocomplete() {
     $("#dialerNumber").autocomplete({
-        source: phonebookEntries,
+        source: function (request, response) {
+            const input = request.term.toLowerCase();
+
+            const sortedEntries = phonebookEntries
+                .filter(entry => entry.value.includes(input) || entry.label.toLowerCase().includes(input)) // Match phone or name
+                .sort((a, b) => getPriority(a, input) - getPriority(b, input)); // Sort by priority
+
+            response(sortedEntries);
+        },
         minLength: 3,
         select: function (event, ui) {
             $("#dialerNumber").val(ui.item.value); // Set selected number
             return false;
         }
     });
+}
+
+function getPriority(entry, input) {
+    if (entry.value === input) return 1; // Exact number match
+    if (entry.value.startsWith(input)) return 2; // Number starts with input
+    if (entry.label.toLowerCase().includes(input)) return 3; // Name contains input
+    return 4; // Default lowest priority
 }
 
 

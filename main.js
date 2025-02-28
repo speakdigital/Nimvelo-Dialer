@@ -302,8 +302,9 @@ ipcMain.handle('get-customers', async () => {
 
 ipcMain.handle('get-extensions', async (event, customerId) => {
     if (!customerId) {
-        console.error("No customer ID provided.");
-        return [];
+        console.error("No customer ID provided. Tying from settings.");
+        customerId = store.get('customer', '');
+        if (!customerId) return [];
     }
 
     const baseURL = "https://pbx.sipcentric.com/api/v1/";
@@ -336,6 +337,7 @@ ipcMain.handle('get-extensions', async (event, customerId) => {
                 localExtensions.push({
                     label: label,
                     value: item.id,
+                    name: item.name, shortNumber: item.shortNumber,
                     readonly: item.hasOwnProperty('readOnly') ? Boolean(item.readOnly) : false,
                     defaultCallerId: item.defaultCallerId
                 });

@@ -13,9 +13,9 @@ async function callPlatformLogin() {
 
 
 
-$(document).ready(() => {
+document.addEventListener("DOMContentLoaded", async () => {
     if (window.location.pathname.includes('welcome.html')) {
-        $('#closeWelcome').click(() => {
+        $('#closeWelcome').on("click",() => {
             ipcRenderer.send('show-login');
         });
     }
@@ -68,7 +68,13 @@ $(document).ready(() => {
     }
     if (window.location.pathname.includes('registerext.html')) {
         getCustomers();
-        $('#customers').change(getExtensions());
+        $('#customers').on("change",getExtensions());
+        const checkbox = document.getElementById("toggleNotifications");
+        // Request stored value from main process
+    
+        const showNotifications = await ipcRenderer.invoke("get-store-data", "showNotifications");
+        checkbox.checked = showNotifications; // Set checkbox state
+
         $('#saveSettings').on("click",(event) => {
             event.preventDefault(); 
             const selectedCustomer = $('#customers').val();
@@ -80,6 +86,7 @@ $(document).ready(() => {
                 return;
             }
 
+            ipcRenderer.invoke('set-store-data', 'showNotifications', document.getElementById("toggleNotifications").checked);
             ipcRenderer.invoke('set-store-data', 'customer', selectedCustomer);
             ipcRenderer.invoke('set-store-data', 'extension', selectedExtension);
             console.log("Settings saved");

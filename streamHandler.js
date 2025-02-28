@@ -80,7 +80,7 @@ async function startStreaming(mainWindow) {
 
 function stopStreaming() {
     if (isStreamingStopped)
-    {   console.Console("Streaming was already stopped");
+    {   console.log("Streaming was already stopped");
         return true;
     }
     // Set flag to prevent reconnection
@@ -112,9 +112,12 @@ function handleEvent(event, mainWindow, store) {
             const extension = store.get('extension', '');
             const customer = store.get('customer', '');
             const endpoint = `/customers/${customer}/endpoints/${extension}`;
+            const showNotifications = store.get('showNotifications', false);
+        
+
             if (event.values.endpoint == endpoint) {
                 console.log('Incoming call to my extension:', event.values);
-                showIncomingCallNotification(event.values);
+                if (showNotifications) showIncomingCallNotification(event.values);
             } else {
                 console.log('Incoming call to other extension:', event.values);
             }
@@ -142,10 +145,11 @@ function handleEvent(event, mainWindow, store) {
 function showIncomingCallNotification(callerInfo) {
     const callerName = callerInfo.callerIdName || 'Unknown';
     const callerNumber = callerInfo.callerIdNumber || 'Unknown Number';
+    const callerDid = callerInfo.did || 'Unpsecified';
     
     const notification = new Notification({
         title: 'Incoming Call',
-        body: `From: ${callerName} (${callerNumber})`,
+        body: `${callerName} (${callerNumber})\nOn Number: ${callerDid}`,
         silent: true, // Set to true if you don't want a sound
         urgency: 'critical', // Makes notification more prominent
         timeoutType: 'default',

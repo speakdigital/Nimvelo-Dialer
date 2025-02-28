@@ -52,7 +52,8 @@
         "nsis"
       ],
       "icon": "assets/icon.ico",
-      "artifactName": "NimveloDialer-Setup-${version}.exe"
+      "artifactName": "NimveloDialer-Setup-${version}.exe",
+      "publisherName": "Speak Digital Ltd"
     },
     "nsis": {
       "oneClick": true,
