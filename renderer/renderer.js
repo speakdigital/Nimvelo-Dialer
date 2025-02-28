@@ -156,8 +156,9 @@ function getCustomers() {
             extensionDropdown.empty();
 
             // Populate dropdown with received extensions
+            console.log(extensions);
             extensions.forEach(extension => {
-                extensionDropdown.append($("<option></option>").attr("value", extension.value).text(extension.label));
+                if (!extension.readonly) extensionDropdown.append($("<option></option>").attr("value", extension.value).text(extension.label));
             });
         })
         .catch(error => {

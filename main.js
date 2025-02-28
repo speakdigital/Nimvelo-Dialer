@@ -1,4 +1,6 @@
-const { app, BrowserWindow, ipcMain,Tray, Menu, globalShortcut, dialog, autoUpdater  } = require('electron');
+const { app, BrowserWindow, ipcMain,Tray, Menu, globalShortcut, dialog  } = require('electron');
+const { autoUpdater } = require("electron-updater");
+const { startStreaming, stopStreaming } = require('./streamHandler'); // Import the streaming module
 const axios = require('axios'); // Import axios for API requests
 const path = require("path");
 const AutoLaunch = require("auto-launch");
@@ -13,42 +15,41 @@ let tray;
 
 
 const server = "https://github.com/speakdigital/Nimvelo-Dialer/releases/latest";
-autoUpdater.setFeedURL({ url: server });
-
 
 app.whenReady().then(() => {
-  autoUpdater.autoDownload = true; // Automatically download updates
+    autoUpdater.autoDownload = true; // Automatically download updates
 
-  autoUpdater.on("update-available", () => {
-    dialog.showMessageBox({
-      type: "info",
-      title: "Update Available",
-      message: "A new update is available. Downloading now...",
+/*
+    autoUpdater.on("update-available", () => {
+        dialog.showMessageBox({
+            type: "info",
+            title: "Update Available",
+            message: "A new update is available. Downloading now...",
+        });
     });
-  });
+*/
+    autoUpdater.on("update-downloaded", () => {
+        dialog
+            .showMessageBox({
+                type: "question",
+                buttons: ["Restart", "Later"],
+                defaultId: 0,
+                title: "Update Ready",
+                message: "Update downloaded. Restart the app to install?",
+            })
+            .then((result) => {
+                if (result.response === 0) {
+                    autoUpdater.quitAndInstall();
+                }
+            });
+    });
 
-  autoUpdater.on("update-downloaded", () => {
-    dialog
-      .showMessageBox({
-        type: "question",
-        buttons: ["Restart", "Later"],
-        defaultId: 0,
-        title: "Update Ready",
-        message: "Update downloaded. Restart the app to install?",
-      })
-      .then((result) => {
-        if (result.response === 0) {
-          autoUpdater.quitAndInstall();
-        }
-      });
-  });
+    autoUpdater.on("error", (err) => {
+        console.error("Update error:", err);
+    });
 
-  autoUpdater.on("error", (err) => {
-    console.error("Update error:", err);
-  });
-
-  // Now trigger update check
-  autoUpdater.checkForUpdates();
+    console.log("Checking for updates. My version is", app.getVersion());
+    autoUpdater.checkForUpdatesAndNotify(); 
 });
 
 
@@ -97,7 +98,10 @@ app.whenReady().then(async () => {
     let startPage = 'welcome.html';
     if (username && password && customer && extension)
     {   const authResult = await authenticateUser(username, password);
-        if (authResult.success === true) startPage = 'home.html';
+        if (authResult.success === true) {
+            startPage = 'home.html';
+            startStreaming();
+        }
     } 
 
 
@@ -174,14 +178,28 @@ app.on('activate', () => {
 });
 
 
+ipcMain.handle("show-confirm-dialog", async (event, options) => {
+    const result = await dialog.showMessageBox({
+        type: "warning",
+        buttons: ["Cancel", options.button],
+        defaultId: 1,
+        title: options.title || "Confirm",
+        message: options.message || "Are you sure?",
+    });
+
+    return result.response === 1; // Returns true if "Delete" is clicked
+});
+
 ipcMain.on('show-login', () => {
     win.loadFile(path.join(__dirname, './renderer/login.html')); // Switch to the login page
 });
 ipcMain.on('show-registerext', () => {
     win.loadFile(path.join(__dirname, './renderer/registerext.html')); // Switch to extension setup page
+    stopStreaming(win);
 });
 ipcMain.on('show-home', () => {
     win.loadFile(path.join(__dirname, './renderer/home.html')); // Switch to extension setup page
+    startStreaming(win);
 });
 
 ipcMain.handle("get-app-version", () => {
@@ -318,6 +336,7 @@ ipcMain.handle('get-extensions', async (event, customerId) => {
                 localExtensions.push({
                     label: label,
                     value: item.id,
+                    readonly: item.hasOwnProperty('readOnly') ? Boolean(item.readOnly) : false,
                     defaultCallerId: item.defaultCallerId
                 });
             }
@@ -592,3 +611,4 @@ ipcMain.handle('phonebook-add', async (event, name, number) => {
         return { success: false, message: error.message };
     }
 });
+

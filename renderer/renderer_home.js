@@ -85,6 +85,8 @@ $(document).ready(() => {
         event.preventDefault(); // Prevent the default link action
         $("#blockPhonebook").hide(); // Hide phonebook
         $("#blockDialer").show(); // Show dialer
+        $("#blockAdd").hide(); // Show dialer
+        $("#dialerNumber").focus();
     });
 
     $("#showPhonebook").on("click", function (event) {
@@ -101,15 +103,35 @@ $(document).ready(() => {
     $(document).on("click", ".delete-button", function () {
         let $entry = $(this).closest(".phonebook-entry"); 
         let contactId = $entry.data("id");
-        let contactName = $entry.find("strong").text(); // Get contact name
+        let contactName = $entry.find("strong").text(); 
     
-        // Show confirmation dialog
-        if (confirm(`Are you sure you want to delete ${contactName}?`)) {
-            ipcRenderer.invoke("delete-contact", contactId);
-            $entry.fadeOut(300, function () { 
-                $(this).remove(); 
-            });
-        }
+        // Use Electron dialog instead of confirm()
+        ipcRenderer.invoke("show-confirm-dialog", {
+            title: "Delete Contact",
+            message: `Are you sure you want to delete ${contactName}?`,
+            button: "Yes, Delete it."
+        }).then((response) => {
+            if (response) {
+                ipcRenderer.invoke("delete-contact", contactId)
+                    .then(() => {
+                        $entry.fadeOut(300, function () { 
+                            $(this).remove(); 
+    
+                            // Refocus after deletion
+                            setTimeout(() => {
+                                let $dialInput = $("#dialerNumber");
+                                if ($dialInput.length) {
+                                    $dialInput.focus();
+                                }
+                            }, 100);
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Error deleting contact:", err);
+                        alert("Failed to delete contact.");
+                    });
+            }
+        });
     });
 
     $("#add-contact").on("click", function(event) {
@@ -133,29 +155,40 @@ $(document).ready(() => {
         $(this).val($(this).val().replace(/\D/g, "")); 
     });
 
-    $(document).on("click", "#doAdd", function () {
-        let name = $("#addName").val().trim();
-        let number = $("#addNumber").val().trim();
-    
-        // Show confirmation dialog
-        if (confirm(`Are you sure you want to add ${name} with number ${number}?`)) {
-            ipcRenderer.invoke('phonebook-add',name,number)
-            .then((response) => {
-                if (response.success)
-                {   getPhonebook();
-                    $("#addName").val("");
-                    $("#addNumber").val("");
-                    $("#blockAdd").slideUp(300);
-                } else {
-                    alert(response.message);
-                }
-            })
-            .catch(error => {
-                console.error("Failed to add phonebook entry", error);
-            });
-            
+$(document).on("click", "#doAdd", function () {
+    let name = $("#addName").val().trim();
+    let number = $("#addNumber").val().trim();
+
+    if (!name || !number) {
+        alert("Please enter both a name and a number.");
+        return;
+    }
+
+    // Use Electron dialog instead of confirm()
+    ipcRenderer.invoke("show-confirm-dialog", {
+        title: "Add Contact",
+        message: `Are you sure you want to add ${name} with number ${number}?`,
+        button: "Add to Phonebook"
+    }).then((response) => {
+        if (response) {
+            ipcRenderer.invoke("phonebook-add", name, number)
+                .then((response) => {
+                    if (response.success) {
+                        getPhonebook();
+                        $("#addName").val("");
+                        $("#addNumber").val("");
+                        $("#blockAdd").slideUp(300);
+                    } else {
+                        alert(response.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Failed to add phonebook entry", error);
+                });
         }
     });
+});
+
 
 });
 
