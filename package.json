@@ -14,7 +14,7 @@
     "start": "electron .",
     "build": "electron-builder",
     "package": "electron-builder --dir",
-    "dist": "electron-builder"
+    "publish": "electron-builder --publish always"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
@@ -34,7 +34,7 @@
       "output": "dist"
     },
     "files": [
-      "main.js",
+      "main.js", "streamHandler.js",
       "renderer/",
       "node_modules/",
       "assets/",
