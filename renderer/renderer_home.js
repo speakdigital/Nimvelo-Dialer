@@ -320,6 +320,27 @@ function dial() {
     }
 }
 
+ipcRenderer.on("dial-phone", (event,phoneNumber) => {
+    const dialerInput = document.getElementById("dialerNumber");
+    if (dialerInput) {
+    // Check if the number starts with a '+'
+        if (phoneNumber.startsWith("+")) {
+            phoneNumber = phoneNumber.replace("+", "00"); // Convert '+' to '00'
+            phoneNumber = phoneNumber.replace(/\(0\)/, ""); // Remove (0) if present
+        } else if (phoneNumber.startsWith("(0)")) {
+            phoneNumber = phoneNumber.replace("(0)", "0"); // Replace (0) with 0
+        }
+
+    // Remove all non-digit characters
+    phoneNumber = phoneNumber.replace(/\D/g, "");
+
+        dialerInput.value = phoneNumber;
+
+        dialerInput.focus();
+        $("#dial").trigger("click");
+    }
+
+})
 
 ipcRenderer.on("focus-dialer", () => {
     const dialerInput = document.getElementById("dialerNumber");

@@ -47,6 +47,12 @@
         "to": "assets/"
       }
     ],
+    "protocols": [
+      {
+        "name": "Telephone",
+        "schemes": ["tel"]
+      }
+    ],
     "win": {
       "target": [
         "nsis"

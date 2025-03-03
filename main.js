@@ -1,8 +1,10 @@
 const { app, BrowserWindow, ipcMain,Tray, Menu, globalShortcut, dialog  } = require('electron');
 const { autoUpdater } = require("electron-updater");
 const { startStreaming, stopStreaming } = require('./streamHandler'); // Import the streaming module
-const axios = require('axios'); // Import axios for API requests
+//const axios = require('axios'); // Import axios for API requests
 const path = require("path");
+//const fs = require("fs");
+const { exec } = require("child_process");
 const AutoLaunch = require("auto-launch");
 
 const baseURL = "https://pbx.sipcentric.com/api/v1/"
@@ -13,44 +15,113 @@ let Store;
 let win;
 let tray;
 
+console.log("Process started with arguments:", process.argv);
 
+const gotTheLock = app.requestSingleInstanceLock();
 const server = "https://github.com/speakdigital/Nimvelo-Dialer/releases/latest";
 
-app.whenReady().then(() => {
-    autoUpdater.autoDownload = true; // Automatically download updates
+if (!gotTheLock) { 
+    /* let logFilePath = path.join(app.getPath("userData"), "log.txt");
+    let message = "Second instans started with arguments: "+process.argv.toString();
+    fs.appendFileSync(logFilePath, `[${new Date().toISOString()}] ${message}\n`, "utf8"); */
 
-/*
-    autoUpdater.on("update-available", () => {
-        dialog.showMessageBox({
-            type: "info",
-            title: "Update Available",
-            message: "A new update is available. Downloading now...",
+    console.log("Process quitting as no second instance allowed");
+    const telUrl = process.argv.find(arg => arg.startsWith("tel:"));
+    if (telUrl) {
+        // Send the tel URL to the existing instance
+        console.log("Sending the tel: ardgument to the main instance");
+        app.emit("second-instance", null, process.argv);
+    }
+    app.quit(); 
+} else 
+{   app.whenReady().then(async() => {
+        autoUpdater.autoDownload = true; // Automatically download updates
+    
+        autoUpdater.on("update-downloaded", () => {
+            dialog
+                .showMessageBox({
+                    type: "question",
+                    buttons: ["Restart", "Later"],
+                    defaultId: 0,
+                    title: "Update Ready",
+                    message: "Update downloaded. Restart the app to install?",
+                })
+                .then((result) => {
+                    if (result.response === 0) {
+                        autoUpdater.quitAndInstall();
+                    }
+                });
         });
-    });
-*/
-    autoUpdater.on("update-downloaded", () => {
-        dialog
-            .showMessageBox({
-                type: "question",
-                buttons: ["Restart", "Later"],
-                defaultId: 0,
-                title: "Update Ready",
-                message: "Update downloaded. Restart the app to install?",
-            })
-            .then((result) => {
-                if (result.response === 0) {
-                    autoUpdater.quitAndInstall();
-                }
-            });
-    });
+    
+        autoUpdater.on("error", (err) => {
+            console.error("Update error:", err);
+        });
+    
+        console.log("Checking for updates. My version is", app.getVersion());
+        autoUpdater.checkForUpdatesAndNotify(); 
 
-    autoUpdater.on("error", (err) => {
-        console.error("Update error:", err);
-    });
+        console.log("Initializing Electron Store...");
 
-    console.log("Checking for updates. My version is", app.getVersion());
-    autoUpdater.checkForUpdatesAndNotify(); 
-});
+        Store = (await import('electron-store')).default;
+        store = new Store(); // Initialize after import
+    
+        console.log("Electron Store Ready!");
+    
+    
+        // Check if all required credentials are stored
+        const username = store.get("username");
+        const password = store.get("password");
+        const customer = store.get("customer");
+        const extension = store.get("extension");
+    
+        // Determine which page to load
+        let startPage = 'welcome.html';
+        if (username && password && customer && extension)
+        {   const authResult = await authenticateUser(username, password);
+            if (authResult.success === true) {
+                startPage = 'home.html';
+                startStreaming();
+            }
+        } 
+    
+        win = new BrowserWindow({
+            width: 400,
+            height: 600,
+            resizable: false,
+            webPreferences: {      nodeIntegration: true, contextIsolation: false  },
+            icon: path.join(__dirname, 'assets', 'icon128.png'), // may need to add some options for mac/ico file
+        });
+    
+        win.setMenu(null);
+    
+        win.loadFile(path.join(__dirname, `./renderer/${startPage}`));
+        
+        if (debug) {
+            win.webContents.once('did-finish-load', () => {
+               win.webContents.openDevTools();
+            });    
+        }
+    
+        globalShortcut.register("CommandOrControl+Shift+D", () => {
+            if (win.isMinimized()) {
+                win.restore();
+            }
+            win.show();
+            win.focus();
+            win.webContents.send("focus-dialer");
+        });
+    
+        createTray();
+        if (!debug) {
+            if (process.platform === "win32") {
+                registerProtocol();
+            }
+        }
+
+    });
+    
+}
+
 
 
 
@@ -79,61 +150,72 @@ ipcMain.handle("get-auto-launch-status", async () => {
     return settings.openAtLogin;
 });
 
-app.whenReady().then(async () => {
-    console.log("Initializing Electron Store...");
 
-    Store = (await import('electron-store')).default;
-    store = new Store(); // Initialize after import
-
-    console.log("Electron Store Ready!");
-
-
-    // Check if all required credentials are stored
-    const username = store.get("username");
-    const password = store.get("password");
-    const customer = store.get("customer");
-    const extension = store.get("extension");
-
-    // Determine which page to load
-    let startPage = 'welcome.html';
-    if (username && password && customer && extension)
-    {   const authResult = await authenticateUser(username, password);
-        if (authResult.success === true) {
-            startPage = 'home.html';
-            startStreaming();
+function registerProtocol() {
+    const appPath = app.getPath("exe");
+  
+    const regCommands = [
+      `reg add "HKCU\\Software\\Classes\\callto" /ve /d "URL:callto" /f`,
+      `reg add "HKCU\\Software\\Classes\\callto" /v "URL Protocol" /d "" /f`,
+      `reg add "HKCU\\Software\\Classes\\tel" /ve /d "URL:tel" /f`,
+      `reg add "HKCU\\Software\\Classes\\tel" /v "URL Protocol" /d "" /f`,
+      `reg add "HKCU\\Software\\Classes\\NimveloDialer.callto" /f`,
+      `reg add "HKCU\\Software\\Classes\\NimveloDialer.callto\\Shell" /f`,
+      `reg add "HKCU\\Software\\Classes\\NimveloDialer.callto\\Shell\\Open" /f`,
+      `reg add "HKCU\\Software\\Classes\\NimveloDialer.callto\\Shell\\Open\\Command" /ve /d "\\"${appPath}\\" \\"%1\\"" /f`,
+      `reg add "HKCU\\Software\\NimveloDialer" /f`,
+      `reg add "HKCU\\Software\\NimveloDialer\\Capabilities" /f`,
+      `reg add "HKCU\\Software\\NimveloDialer\\Capabilities" /v "ApplicationDescription" /d "NimveloDialer" /f`,
+      `reg add "HKCU\\Software\\NimveloDialer\\Capabilities" /v "ApplicationName" /d "NimveloDialer" /f`,
+      `reg add "HKCU\\Software\\NimveloDialer\\Capabilities\\URLAssociations" /f`,
+      `reg add "HKCU\\Software\\NimveloDialer\\Capabilities\\URLAssociations" /v "callto" /d "NimveloDialer.callto" /f`,
+      `reg add "HKCU\\Software\\NimveloDialer\\Capabilities\\URLAssociations" /v "tel" /d "NimveloDialer.callto" /f`,
+      `reg add "HKCU\\Software\\RegisteredApplications" /v "NimveloDialer" /d "Software\\NimveloDialer\\Capabilities" /f`
+    ];
+  
+    function runCommand(index) {
+      if (index >= regCommands.length) {
+        console.log("Protocol registration completed successfully.");
+        return;
+      }
+  
+      exec(regCommands[index], (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing command: ${regCommands[index]}`, error);
         }
-    } 
+        runCommand(index + 1);
+      });
+    }
+  
+    runCommand(0);
+  }
+  
 
-
-    win = new BrowserWindow({
-        width: 400,
-        height: 600,
-        resizable: false,
-        webPreferences: {      nodeIntegration: true, contextIsolation: false  },
-        icon: path.join(__dirname, 'assets', 'icon128.png'), // may need to add some options for mac/ico file
-    });
-
-    win.setMenu(null);
-
-    win.loadFile(path.join(__dirname, `./renderer/${startPage}`));
-    
-    if (debug) {
-        win.webContents.once('did-finish-load', () => {
-           win.webContents.openDevTools();
-        });    
+// this is for Mac Only
+app.on("open-url", (event, url) => {
+    event.preventDefault();
+    console.log("Open URL Called");
+    handleTelLink(url);
+  });
+  
+ // Handle "tel:" links (Windows/Linux when app is already running)
+ app.on("second-instance", (event, argv) => {
+    console.log("Second instance called");
+    const telUrl = argv.find(arg => arg.startsWith("tel:"));
+    if (telUrl) handleTelLink(telUrl);
+  });
+  
+  function handleTelLink(url) {
+    console.log("Dialing from URL: ", url);
+    const phoneNumber = url.replace("tel:", "").trim();
+    // Integrate with your VoIP provider API or your dialer UI
+    if (win) {
+        if (win.isMinimized()) win.restore();
+        win.focus();
+        win.webContents.send("dial-phone", phoneNumber);
     }
 
-    globalShortcut.register("CommandOrControl+Shift+D", () => {
-        if (win.isMinimized()) {
-            win.restore();
-        }
-        win.show();
-        win.focus();
-        win.webContents.send("focus-dialer");
-    });
-
-    createTray();
-});
+  }
 
 function createTray() {
     const iconPath = path.join(__dirname, 'assets/icon48.png'); // Ensure the path is correct
