@@ -213,7 +213,7 @@ app.on("open-url", (event, url) => {
   
   function handleTelLink(url) {
     console.log("Dialing from URL: ", url);
-    const phoneNumber = url.replace("tel:", "").trim();
+    const phoneNumber = url.replace("tel:", "").replace("%20", "").trim();
     // Integrate with your VoIP provider API or your dialer UI
     if (win) {
         if (win.isMinimized()) win.restore();
@@ -403,6 +403,8 @@ ipcMain.handle('get-extensions', async (event, customerId) => {
     const username = store.get('username', '');
     const password = store.get('password', '');
 
+    console.log("About to get extensions from ",requestURL);
+    
     try {
         const response = await fetch(requestURL, {
             method: 'GET',
@@ -418,6 +420,8 @@ ipcMain.handle('get-extensions', async (event, customerId) => {
         }
 
         const localExtensions = [];
+        
+        console.log("Received extension list: ",data);
 
         data.items.forEach(item => {
             if (item.type == "phone") {

@@ -67,8 +67,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     }
     if (window.location.pathname.includes('registerext.html')) {
-        getCustomers();
         $('#customers').on("change",getExtensions());
+        getCustomers();
         const checkbox = document.getElementById("toggleNotifications");
         // Request stored value from main process
     
@@ -144,6 +144,12 @@ function getCustomers() {
                 customers.forEach(customer => {
                     customerDropdown.append($("<option></option>").attr("value", customer.value).text(customer.label));
                 });
+                
+                console.log("Cleared customers and set the default to ",$('#customers option:first').val());
+
+                $('#customers').val($('#customers option:first').val());
+                getExtensions();
+
             })
             .catch(error => {
                 console.error("Failed to load customers:", error);
@@ -154,6 +160,10 @@ function getCustomers() {
 
   function getExtensions() {
     const customerId = $('#customers').val();
+    if (customerId == "notset")
+    {   console.log ("not getting extenions as customer not set");
+        return;
+    }
 
     ipcRenderer.invoke('get-extensions', customerId)
         .then((extensions) => {
