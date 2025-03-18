@@ -1,6 +1,6 @@
 {
   "name": "nimvelo-dialer",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Nimvelo Dialer and Phonebook",
   "main": "main.js",
   "keywords": [],
@@ -73,7 +73,7 @@
         "zip"
       ],
       "icon": "assets/icon.icns",
-      "artifactName": "NimveloDialer-${version}.dmg"
+      "artifactName": "NimveloDialer-${version}.${ext}"
     },
     "linux": {
       "target": [

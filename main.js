@@ -89,9 +89,15 @@ if (!gotTheLock) {
             height: 600,
             resizable: false,
             webPreferences: {      nodeIntegration: true, contextIsolation: false  },
-            icon: path.join(__dirname, 'assets', 'icon128.png'), // may need to add some options for mac/ico file
+            icon: process.platform === 'win32'
+      ? path.join(__dirname, 'assets', 'icon128x128.png') // Windows icon
+      : path.join(__dirname, 'assets', 'icon.icns') 
+
         });
-    
+
+	if (process.platform === 'darwin') {
+		app.dock.setIcon(path.join(__dirname, 'assets', 'icon1024x1024.png'));
+	}    
         win.setMenu(null);
     
         win.loadFile(path.join(__dirname, `./renderer/${startPage}`));
@@ -218,7 +224,7 @@ app.on("open-url", (event, url) => {
   }
 
 function createTray() {
-    const iconPath = path.join(__dirname, 'assets/icon48.png'); // Ensure the path is correct
+    const iconPath = path.join(__dirname, 'assets/icon24x24.png'); // Ensure the path is correct
     tray = new Tray(iconPath);
 
     const contextMenu = Menu.buildFromTemplate([
