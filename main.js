@@ -5,7 +5,6 @@ const { startStreaming, stopStreaming } = require('./streamHandler'); // Import 
 const path = require("path");
 //const fs = require("fs");
 const { exec } = require("child_process");
-const AutoLaunch = require("auto-launch");
 
 const baseURL = "https://pbx.sipcentric.com/api/v1/"
 const debug = !app.isPackaged;
@@ -67,7 +66,14 @@ if (!gotTheLock) {
     
         console.log("Electron Store Ready!");
     
-    
+        const contextMenu = await import('electron-context-menu');
+        contextMenu.default({
+            showCopyImage: false,
+            showSaveImageAs: false,
+            showInspectElement: false
+        });
+ 
+           
         // Check if all required credentials are stored
         const username = store.get("username");
         const password = store.get("password");
@@ -128,20 +134,6 @@ if (!gotTheLock) {
     
 }
 
-
-
-
-const myAppLauncher = new AutoLaunch({
-    name: "NimveloDialer",
-    path: app.getPath("exe")
-});
-
-
-myAppLauncher.isEnabled().then((isEnabled) => {
-    if (!isEnabled) {
-        myAppLauncher.enable();
-    }
-});
 
 ipcMain.handle("set-auto-launch", async (event, enable) => {
     app.setLoginItemSettings({
